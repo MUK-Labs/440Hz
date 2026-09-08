@@ -1,0 +1,25 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="4dp">
+    <TextView
+        android:id="@+id/widget_play"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/widget_background"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:gravity="center"
+        android:padding="4dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/widget_label"
+        android:textColor="#F4F3EB"
+        android:textSize="32sp"
+        android:autoSizeTextType="uniform"
+        android:autoSizeMinTextSize="16sp"
+        android:autoSizeMaxTextSize="64sp"
+        android:autoSizeStepGranularity="2sp"
+        android:maxLines="1"
+        android:contentDescription="@string/widget_play_description"
+        android:clickable="true"
+        android:focusable="true" />
+</FrameLayout>

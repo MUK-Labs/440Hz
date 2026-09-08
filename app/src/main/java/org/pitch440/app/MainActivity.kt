@@ -2,6 +2,8 @@ package org.pitch440.app
 
 import android.Manifest
 import android.app.*
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -21,20 +23,11 @@ class MainActivity : Activity() {
     private lateinit var status: TextView
     private lateinit var toggle: Switch
     private var updating = false
-    private var player: MediaPlayer? = null
-    private lateinit var audio: AudioManager
-    private lateinit var focus: AudioFocusRequest
-    private var hasFocus = false
     private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        audio = getSystemService(AudioManager::class.java)
         volumeControlStream = AudioManager.STREAM_MUSIC
-        focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-            .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
-            .setOnAudioFocusChangeListener { change -> if (change < 0) stopTone() }.build()
         val scroll = ScrollView(this).apply { setBackgroundColor(Color.rgb(244, 243, 235)) }
         content = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(24), dp(20), dp(24), dp(28)) }
         scroll.addView(content)
@@ -71,6 +64,14 @@ class MainActivity : Activity() {
         }
         content.addView(toggle)
         status = label("", 14)
+        button(getString(R.string.widget_add)) {
+            val widgets = AppWidgetManager.getInstance(this)
+            val provider = ComponentName(this, PitchWidget::class.java)
+            if (!widgets.isRequestPinAppWidgetSupported ||
+                !widgets.requestPinAppWidget(provider, null, null)) {
+                Toast.makeText(this, R.string.widget_add_help, Toast.LENGTH_LONG).show()
+            }
+        }
         button("Reminder settings") { editSettings() }
         button("Test vibration") {
             if (Reminders.allowed(this)) Reminders.show(this)
@@ -120,22 +121,8 @@ class MainActivity : Activity() {
             else Toast.makeText(this, "Reminders need notification permission. You can still play 440.", Toast.LENGTH_LONG).show()
         }
     }
-    private fun stopTone() {
-        player?.release(); player = null
-        if (hasFocus) { audio.abandonAudioFocusRequest(focus); hasFocus = false }
-    }
-    private fun playTone() {
-        stopTone()
-        hasFocus = audio.requestAudioFocus(focus) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
-        if (!hasFocus) { Toast.makeText(this, "Audio is busy. Try again in a moment.", Toast.LENGTH_SHORT).show(); return }
-        try {
-            player = MediaPlayer.create(this, R.raw.a440)
-            player?.setOnCompletionListener { stopTone() }
-            player?.setOnErrorListener { _, _, _ -> stopTone(); true }
-            if (player == null) { stopTone(); return }
-            player?.start()
-        } catch (_: Exception) { stopTone(); Toast.makeText(this, "Could not play the tone.", Toast.LENGTH_SHORT).show() }
-    }
+    private fun stopTone() = TonePlayback.stop(this)
+    private fun playTone() = TonePlayback.play(this, this)
     override fun onStop() { stopTone(); super.onStop() }
     private fun time(minutes: Int) = String.format(Locale.ROOT, "%02d:%02d", minutes / 60, minutes % 60)
     private fun editSettings() {

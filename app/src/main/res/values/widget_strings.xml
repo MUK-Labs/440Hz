@@ -1,0 +1,10 @@
+<resources>
+    <string name="widget_label">440</string>
+    <string name="widget_play_description">Play A, 440 hertz</string>
+    <string name="widget_add">Add home-screen widget</string>
+    <string name="widget_add_help">Long-press your home screen, choose Widgets, then find 440.</string>
+    <string name="widget_playback_channel">Widget tone</string>
+    <string name="widget_playback_title">Playing A · 440 Hz</string>
+    <string name="widget_playback_text">The tone stops automatically.</string>
+    <string name="widget_playback_failed">Could not play. Open 440 and try the app button.</string>
+</resources>
