@@ -4,10 +4,18 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
     <application android:label="440" android:icon="@drawable/ic_launcher" android:theme="@style/AppTheme" android:allowBackup="false" android:supportsRtl="true">
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
         </activity>
+        <service android:name=".ShakeReminderService" android:exported="false"
+            android:foregroundServiceType="specialUse|mediaPlayback">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-enabled locked-screen pitch recall: accelerometer listens only for 60 seconds after each reminder, then stops. A double shake plays the reference once. Session starts from the visible app and has a persistent off action." />
+        </service>
         <service android:name=".WidgetToneService" android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
         <receiver android:name=".PitchWidget" android:exported="false" android:label="@string/widget_label">

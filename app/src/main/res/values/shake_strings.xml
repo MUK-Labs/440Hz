@@ -1,0 +1,12 @@
+<resources>
+    <string name="shake_title">Shake after reminders</string>
+    <string name="shake_help">After a reminder, two brisk shakes play A once within 60 seconds, even while locked. A quiet ongoing notification keeps this mode available. Sensors are off between reminders.</string>
+    <string name="shake_unavailable">This phone has no accelerometer.</string>
+    <string name="shake_start_failed">Could not enable shake mode. Open 440 and try again.</string>
+    <string name="shake_channel">Shake mode status</string>
+    <string name="shake_waiting">Waiting for a reminder · motion sensing off</string>
+    <string name="shake_listening">Shake twice to hear A · ready for 60 seconds</string>
+    <string name="shake_playing">Playing A · motion sensing off</string>
+    <string name="shake_turn_off">Turn off shake</string>
+    <string name="shake_sensitivity">Shake sensitivity</string>
+</resources>

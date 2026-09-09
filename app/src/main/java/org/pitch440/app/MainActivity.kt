@@ -22,6 +22,7 @@ class MainActivity : Activity() {
     private lateinit var content: LinearLayout
     private lateinit var status: TextView
     private lateinit var toggle: Switch
+    private lateinit var shakeToggle: Switch
     private var updating = false
     private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
 
@@ -64,6 +65,20 @@ class MainActivity : Activity() {
         }
         content.addView(toggle)
         status = label("", 14)
+        shakeToggle = Switch(this).apply {
+            text = getString(R.string.shake_title); textSize = 19f; setTextColor(ink)
+            isEnabled = ShakeReminderService.supported(this@MainActivity)
+            setOnCheckedChangeListener { _, checked ->
+                if (!updating) {
+                    Preferences(this@MainActivity).data.edit().putBoolean("shake", checked).apply()
+                    ShakeReminderService.syncFromActivity(this@MainActivity)
+                    refresh()
+                }
+            }
+        }
+        content.addView(shakeToggle)
+        label(getString(if (ShakeReminderService.supported(this)) R.string.shake_help
+            else R.string.shake_unavailable), 13)
         button(getString(R.string.widget_add)) {
             val widgets = AppWidgetManager.getInstance(this)
             val provider = ComponentName(this, PitchWidget::class.java)
@@ -73,8 +88,8 @@ class MainActivity : Activity() {
             }
         }
         button("Reminder settings") { editSettings() }
-        button("Test vibration") {
-            if (Reminders.allowed(this)) Reminders.show(this)
+        button("Test reminder") {
+            if (Reminders.allowed(this)) Reminders.show(this, armShake = true)
             else Toast.makeText(this, "Allow notifications first, using Notification settings.", Toast.LENGTH_LONG).show()
         }
         button("Notification settings") {
@@ -90,10 +105,10 @@ class MainActivity : Activity() {
     private fun button(value: String, action: () -> Unit) {
         content.addView(Button(this).apply { text = value; isAllCaps = false; setOnClickListener { action() } })
     }
-    override fun onResume() { super.onResume(); Reminders.schedule(this); refresh() }
+    override fun onResume() { super.onResume(); Reminders.schedule(this); ShakeReminderService.syncFromActivity(this); refresh() }
     private fun refresh() {
         val p = Preferences(this)
-        updating = true; toggle.isChecked = p.enabled; updating = false
+        updating = true; toggle.isChecked = p.enabled; shakeToggle.isChecked = p.shake; updating = false
         val ch = getSystemService(NotificationManager::class.java).getNotificationChannel(Reminders.CHANNEL)
         status.text = when {
             !p.enabled -> "Reminders are off. The 440 button is always ready."
@@ -112,7 +127,7 @@ class MainActivity : Activity() {
             editor.putLong("expires", if (duration == 0L) 0 else System.currentTimeMillis() + duration)
         }
         editor.apply()
-        Reminders.schedule(this, true); refresh()
+        Reminders.schedule(this, true); ShakeReminderService.syncFromActivity(this); refresh()
     }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -132,6 +147,9 @@ class MainActivity : Activity() {
         fun spinner(items: List<String>) = Spinner(this).also {
             it.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, items); panel.addView(it)
         }
+        caption(getString(R.string.shake_sensitivity))
+        val sensitivity = spinner(listOf("Gentle", "Normal", "Firm"))
+        sensitivity.setSelection(p.data.getInt("shakeSensitivity", 1).coerceIn(0, 2))
         caption("Average reminders")
         val count = spinner((1..6).map { it.toString() }); count.setSelection(p.count - 1)
         val unit = spinner(listOf("Per active hour", "Per active day")); unit.setSelection(if (p.perDay) 1 else 0)
@@ -158,10 +176,10 @@ class MainActivity : Activity() {
             val selected = days.mapIndexedNotNull { i, day -> if (day.isChecked) (i + 1).toString() else null }.toSet()
             if (selected.isEmpty()) { Toast.makeText(this, "Choose at least one day.", Toast.LENGTH_SHORT).show(); return@setOnClickListener }
             val length = durations[duration.selectedItemPosition]
-            p.data.edit().putInt("count", count.selectedItemPosition + 1).putBoolean("perDay", unit.selectedItemPosition == 1)
+            p.data.edit().putInt("shakeSensitivity", sensitivity.selectedItemPosition).putInt("count", count.selectedItemPosition + 1).putBoolean("perDay", unit.selectedItemPosition == 1)
                 .putInt("start", start).putInt("end", end).putStringSet("days", selected).putLong("duration", length)
                 .putLong("expires", if (p.enabled && length > 0) System.currentTimeMillis() + length else 0).apply()
-            Reminders.cancel(this); Reminders.schedule(this, true); refresh(); dialog.dismiss()
+            Reminders.cancel(this); Reminders.schedule(this, true); ShakeReminderService.syncFromActivity(this); refresh(); dialog.dismiss()
         } }
         dialog.show()
     }

@@ -67,6 +67,45 @@ service and a silent playback notification; both stop after the tone finishes.
 Repeated taps restart the tone without overlap, including across multiple widgets
 and the app button. The widget has no periodic updates or continuously running service.
 
+## Reminder-only shake (0.3.0)
+
+Enable **Random reminders** and **Shake after reminders** in the app.
+After each delivered reminder, recall A and give the phone two brisk shakes
+within 60 seconds. The tone plays once; sensing then stops until the next reminder.
+Keep the phone in your hand. **Reminder settings → Shake sensitivity** offers
+Gentle, Normal, and Firm. Normal is the default; shake mode defaults to off.
+
+Use **Test reminder**, lock your phone, wait for the vibration to finish, then
+shake twice. The first 1.5 seconds are ignored so the notification vibration
+does not trigger playback. There is no shake playback before a reminder,
+after timeout, or after already playing the reference with the app or widget.
+Starting the app, restarting a service, or rebooting never arms a window.
+Do Not Disturb prevents arming and gesture playback.
+
+Android requires a quiet ongoing **Shake after reminders** notification while
+this option and reminders are enabled. Its **Turn off shake** action stops the
+service, sensor listener, and any gesture playback. The accelerometer is only
+registered during the reminder window, with a bounded CPU wake lock so it can
+work with the screen off; no sensor data is stored or uploaded. Outside that
+window there is no sensor listener or held wake lock. Gesture playback uses the
+same audio-focus-aware player as the app and widget.
+
+The session is started from the visible app, not an inexact background alarm.
+After reboot, app update, force-stop, or manually stopping the service in Android,
+open 440 again to enable locked-screen shake for future reminders. Android may
+restart a killed service, but it restores no pending gesture or sound.
+Manufacturer battery policies can still affect locked-screen delivery; validate
+on the actual phone. The notification channel must be enabled for reminders.
+If the device has no accelerometer, the shake switch is unavailable.
+
+Implementation: a declared special-use foreground service maintains the optional
+gesture session, adding the mediaPlayback type only during the reference tone.
+The detector uses acceleration magnitude, two distinct peaks separated by a low
+reading, a 180–1000 ms gap, and monotonic deadlines. Automated Java checks cover
+window boundaries, grace period, cancellation, one-shot consumption, sensitivity,
+invalid/stale ordering, and isolated or sustained motion. Real walking, pocket
+movement, and deliberate-shake sensitivity still need device testing.
+
 ## Signed builds for sharing
 
 With Android Studio, generate the Gradle wrapper first as below, open this
@@ -120,6 +159,12 @@ The UI is Kotlin with platform Android views; the independent scheduler is Java.
 
 ## Device acceptance checks
 
+- Enable reminder-only shake; use Test reminder, lock, and shake twice within 60 seconds.
+- Verify one playback, timeout silence, and no arming from service restart or boot.
+- Verify manual app/widget playback consumes a pending shake window.
+- Test walking/pocket movement, all sensitivity levels, DND, calls, and headphones.
+- Disable shake/reminders, use the notification off action, and test expiry during a window.
+- Revoke notifications and verify no new gesture playback.
 - Add the widget through the app and the launcher's widget picker; resize it.
 - Tap after the app process has been closed; confirm playback stays on the home screen.
 - Tap rapidly and use two widgets; confirm only one tone plays and the service stops.
