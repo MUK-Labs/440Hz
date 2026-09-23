@@ -128,11 +128,9 @@ movement, and deliberate-shake sensitivity still need device testing.
 
 ## Signed builds for sharing
 
-The phone-friendly [installation page](site/index.html) is ready in `site/`.
-To give it a public GitHub Pages URL, enable **Settings → Pages → Build and
-deployment → Source: GitHub Actions** for this repository. The
-`Publish installation page` workflow deploys the contents of `site/`.
-Check that the published URL is accessible without a GitHub login before sharing.
+The phone-friendly [installation page](https://muk-labs.github.io/440Hz/) is
+published through GitHub Pages; its source is [`site/index.html`](site/index.html).
+It explains installation, first use, and Android troubleshooting.
 
 There is currently no public APK download. Provide a signed APK through a link
 potential users can actually access, then add that link to both the installation
