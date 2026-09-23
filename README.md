@@ -128,10 +128,16 @@ movement, and deliberate-shake sensitivity still need device testing.
 
 ## Signed builds for sharing
 
-There is currently no public APK download. Before sharing the README with
-potential users, provide a signed APK through a link they can actually access.
-This repository is private, so a Release here would also require repository
-access. Add the download link to the installation section above when available.
+The phone-friendly [installation page](site/index.html) is ready in `site/`.
+To give it a public GitHub Pages URL, enable **Settings → Pages → Build and
+deployment → Source: GitHub Actions** for this repository. The
+`Publish installation page` workflow deploys the contents of `site/`.
+Check that the published URL is accessible without a GitHub login before sharing.
+
+There is currently no public APK download. Provide a signed APK through a link
+potential users can actually access, then add that link to both the installation
+page and the section above. This repository is private, so a Release here would
+also require repository access.
 
 With Android Studio, generate the Gradle wrapper first as below, open this
 project, then choose **Build → Generate Signed App Bundle or APK → APK**.
