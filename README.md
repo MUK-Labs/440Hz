@@ -4,9 +4,11 @@ A small offline Android app for practising recall of A440.
 
 Your phone gives a quiet double vibration at random intervals. Imagine or sing
 A; when ready, open the notification and press **440** to hear the reference.
-Opening the app never plays audio automatically. The button works with reminders
-off, too. A home-screen widget also plays the tone directly. No microphone, accounts,
-analytics or network access.
+Or, with **Shake after reminders** enabled, shake the phone twice within 60 seconds
+of the vibration to hear A without opening the app. Opening the app never plays
+audio automatically. The button works with reminders off, too. A home-screen
+widget also plays the tone directly. No microphone, accounts, analytics or
+network access.
 
 ## Current status
 
@@ -41,7 +43,8 @@ each update must pass the workflow; the device checks below cover further behavi
 5. Transfer `app-debug.apk` to your Android phone and open it. Allow that source
    to install apps if prompted. Minimum supported version: Android 8.0.
 6. Open **440**, press the large button, and adjust media volume. Turn on
-   reminders and grant notification permission when requested.
+   reminders and grant notification permission when requested. Optionally enable
+   **Shake after reminders** to play the tone with two shakes after a vibration.
 
 The `.github` directory must be included when uploading; the Terminal method
 above includes it. A downloaded source ZIP itself is not installable on Android.
