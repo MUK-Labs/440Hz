@@ -2,6 +2,9 @@
 
 A small offline Android app for practising recall of A440.
 
+**Android only:** Requires Android 8.0 or newer. There is no iPhone version or
+Play Store listing yet.
+
 Your phone gives a quiet double vibration at random intervals. Imagine or sing
 A; when ready, open the notification and press **440** to hear the reference.
 Or, with **Shake after reminders** enabled, shake the phone twice within 60 seconds
@@ -10,53 +13,67 @@ audio automatically. The button works with reminders off, too. A home-screen
 widget also plays the tone directly. No microphone, accounts, analytics or
 network access.
 
-## Current status
+## Install on a new Android phone
 
-The initial app passed the GitHub build and lint checks and was reported working
-on the owner's Android phone. Version 0.2.0 adds the home-screen widget; widget
-playback still needs the device checks below.
-The Java scheduling engine has passed local boundary and randomized tests.
-The bundled audio has been checked for duration and frequency. The included
-GitHub workflow builds an installable **debug APK** and runs Android lint;
-each update must pass the workflow; the device checks below cover further behavior.
+**Getting the app:** This repository is currently private and has no published
+APK release. Ask the maintainer for an APK file; a link to this repository or
+its GitHub Actions builds will not work for people without access. A GitHub
+“Source code” ZIP is not an Android app.
 
-## Get an APK using GitHub (no Android Studio needed)
+1. Download the **.apk** file from the maintainer onto your Android phone.
+   If you transferred it from a computer, find it in **Files → Downloads**.
+2. Tap the APK and choose **Install**. If Android blocks the installation,
+   follow its prompt to **Settings → Allow from this source** for the browser
+   or file manager you used, then go back and tap **Install** again. The exact
+   wording varies by phone. You can turn that permission off after installing.
+3. Tap **Open**, or find the app named **440** among your apps. It works offline
+   and needs no account.
 
-1. Create an empty GitHub repository, for example `pitch440`.
-2. Unzip this project on your Mac. In Terminal, enter its folder and run:
+Only install an APK you received from a source you trust. If you get an
+installation error while updating an older test build, see
+[Troubleshooting](#troubleshooting) before uninstalling it.
 
-   ```bash
-   git init -b main
-   git add .
-   git commit -m "Initial 440 Android app"
-   ```
+## Set it up and try it
 
-3. Add the repository URL shown by GitHub and push:
+1. Turn up **media volume** and tap the large **440** button. You should hear
+   a three-second A. Check whether sound goes to headphones or a Bluetooth
+   device if the phone seems silent.
+2. Switch on **Random reminders** and allow notifications when Android asks.
+   Open **Reminder settings** to choose your active days and hours, reminder
+   frequency, and how long the reminders should run; then tap **Save**.
+3. Tap **Test reminder**. You should get a quiet notification with a double
+   vibration. Imagine or sing A, tap the notification to open the app, then
+   press **440** to compare. Tapping the notification alone does not play sound.
+4. Optionally enable **Shake after reminders**. Tap **Test reminder** again,
+   wait for the vibration to finish, and shake the phone twice briskly within
+   60 seconds to hear A without opening the app. This can work with the screen
+   locked. A quiet ongoing notification indicates shake mode is available.
+   The option is unavailable on phones without an accelerometer.
+5. Optionally tap **Add home-screen widget** for a one-tap reference tone.
 
-   ```bash
-   git remote add origin https://github.com/YOUR_USERNAME/pitch440.git
-   git push -u origin main
-   ```
+## Troubleshooting
 
-4. Open **Actions → Build Android APK**. After it succeeds, download the
-   `pitch440-debug-apk` artifact and unzip it.
-5. Transfer `app-debug.apk` to your Android phone and open it. Allow that source
-   to install apps if prompted. Minimum supported version: Android 8.0.
-6. Open **440**, press the large button, and adjust media volume. Turn on
-   reminders and grant notification permission when requested. Optionally enable
-   **Shake after reminders** to play the tone with two shakes after a vibration.
-
-The `.github` directory must be included when uploading; the Terminal method
-above includes it. A downloaded source ZIP itself is not installable on Android.
-
-The CI APK is for initial testing. Fresh CI machines can use different debug
-signing keys, so a later debug APK may require uninstalling the previous build
-(which erases its settings). For stable distribution, create and safely retain
-one release signing key. Never commit that key or passwords.
+- **No sound:** Raise *media* volume, check the current speaker or headphones,
+  and use the large **440** button to test playback.
+- **No reminder or vibration:** Check that **Random reminders** is on, your
+  chosen hours and days include the current time, and the run has not ended.
+  In **Notification settings**, allow notifications for 440 and vibration for
+  **Pitch reminders**. Do Not Disturb can silence them. **Test reminder** lets
+  you check without waiting for a random delivery. Android battery saving can
+  delay or reduce scheduled reminders.
+- **Shake does not play A:** Enable both **Random reminders** and **Shake after
+  reminders**. Keep the phone in your hand; wait for the vibration to end and
+  shake twice within 60 seconds. Try **Reminder settings → Shake sensitivity**
+  if needed. Open the app again after a reboot, update, or force-stop to resume
+  locked-screen shake. Do Not Disturb disables shake playback.
+- **An update will not install:** Android requires an update to use the same
+  signing key as the installed app. Ask the maintainer for a compatible APK.
+  Uninstalling an old test build can make a differently signed build install,
+  but it erases this app's settings.
 
 ## Home-screen widget
 
-Install version 0.2.0, open **440**, and tap **Add home-screen widget**.
+Open **440** and tap **Add home-screen widget**.
 Confirm placement in your launcher's prompt. Alternatively, long-press an empty
 part of your home screen, choose **Widgets**, and drag **440** onto it.
 
@@ -111,12 +128,19 @@ movement, and deliberate-shake sensitivity still need device testing.
 
 ## Signed builds for sharing
 
+There is currently no public APK download. Before sharing the README with
+potential users, provide a signed APK through a link they can actually access.
+This repository is private, so a Release here would also require repository
+access. Add the download link to the installation section above when available.
+
 With Android Studio, generate the Gradle wrapper first as below, open this
 project, then choose **Build → Generate Signed App Bundle or APK → APK**.
 Create a keystore outside the repository, keep a secure backup, and use the
-same key for every update. Attach the signed APK to a GitHub Release. Increase
-`versionCode` and `versionName` in `app/build.gradle.kts` for updates.
-Play Store publishing is optional and is not configured in this project.
+same key for every update. Increase `versionCode` and `versionName` in
+`app/build.gradle.kts` for updates. The GitHub Actions workflow produces a
+debug APK for testing; its artifact requires repository access, expires, and
+may use a different signing key on later builds. Play Store publishing is
+optional and is not configured in this project.
 
 ## Local development
 
