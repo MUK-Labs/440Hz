@@ -16,14 +16,14 @@ network access.
 ## Install on a new Android phone
 
 **Getting the app:** [Download the Android test APK](https://muk-labs.github.io/440Hz/site/440-v0.3.0-test.apk)
-or follow the [illustrated installation page](https://muk-labs.github.io/440Hz/).
+or follow the [step-by-step installation page](https://muk-labs.github.io/440Hz/).
 The repository is private, but this test APK is hosted publicly on GitHub Pages.
 It is a debug build: a future update signed with a different key may require
 reinstalling the app, which erases its settings. A GitHub “Source code” ZIP is
 not an Android app.
 
-1. Download the **.apk** file from the maintainer onto your Android phone.
-   If you transferred it from a computer, find it in **Files → Downloads**.
+1. Open the download link above on your Android phone and save the **.apk** file.
+   Find it in **Files → Downloads** if it does not open automatically.
 2. Tap the APK and choose **Install**. If Android blocks the installation,
    follow its prompt to **Settings → Allow from this source** for the browser
    or file manager you used, then go back and tap **Install** again. The exact
