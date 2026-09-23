@@ -46,7 +46,8 @@
     .availability { margin-top: -2rem; position: relative; background: var(--white); border: 1px solid var(--line); border-radius: 1.2rem; box-shadow: 0 12px 35px #153c3414; padding: clamp(1.15rem, 3vw, 1.7rem); display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; }
     .availability strong { font-size: 1.25rem; letter-spacing: -.025em; }
     .availability p { margin: .35rem 0 0; color: var(--muted); max-width: 700px; }
-    .pill { background: var(--amber); border-radius: 99px; padding: .45rem .8rem; color: #76510b; font-weight: 750; font-size: .82rem; white-space: nowrap; }
+    .download { display: inline-flex; align-items: center; justify-content: center; gap: .55rem; min-height: 3.3rem; padding: .8rem 1.2rem; border-radius: .75rem; background: var(--lime); color: var(--ink); text-decoration: none; font-weight: 800; text-align: center; white-space: nowrap; }
+    .download:hover { background: #c9eb78; }
     .intro { display: flex; flex-wrap: wrap; gap: .55rem 1.5rem; margin: 1.8rem 0 3.5rem; color: var(--muted); font-size: .9rem; }
     .intro span::before { content: "✓"; color: var(--green); font-weight: 850; margin-right: .45rem; }
     h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); letter-spacing: -.04em; line-height: 1.14; margin: 0 0 .65rem; }
@@ -84,7 +85,7 @@
       .wrap { width: min(100% - 1.5rem, 1040px); }
       .hero { padding-top: 2.5rem; padding-bottom: 3.5rem; }
       .availability { grid-template-columns: 1fr; }
-      .pill { justify-self: start; }
+      .download { justify-self: stretch; }
       .steps, .faq { grid-template-columns: 1fr; }
       .intro { margin-bottom: 2.7rem; }
     }
@@ -111,10 +112,10 @@
   <main id="main" class="wrap">
     <section class="availability" aria-labelledby="download-title">
       <div>
-        <strong id="download-title">Get the Android APK</strong>
-        <p>The installer has not been published yet. If someone sent you this page, ask them for the official <strong>.apk</strong> file. There is no working public download link at present; we will add one here when a signed build is ready.</p>
+        <strong id="download-title">Download 440 for Android</strong>
+        <p>This is a <strong>test build (v0.3.0, 1.1 MB)</strong> for Android 8.0 and newer. It is not a Play Store release. A future update signed with a different key may require reinstalling the app, which resets your reminder settings.</p>
       </div>
-      <span class="pill">Download pending</span>
+      <a class="download" href="440-v0.3.0-test.apk" download>Download test APK <span aria-hidden="true">↓</span></a>
     </section>
     <div class="intro" aria-label="App essentials">
       <span>Android only (no iPhone version yet)</span>
@@ -124,11 +125,11 @@
 
     <section id="install" aria-labelledby="install-title">
       <h2 id="install-title">Install it in three steps</h2>
-      <p class="section-lead">Once you have received the APK from the app's maintainer, do this on your Android phone.</p>
+      <p class="section-lead">Open this page on your Android phone, then follow these steps.</p>
       <ol class="steps">
         <li>
           <h3>Download the APK</h3>
-          <p>Save the file ending in <strong>.apk</strong> to your phone. Look in <strong>Files → Downloads</strong> if you cannot find it. A GitHub “Source code” ZIP is not the app.</p>
+          <p>Tap <a href="440-v0.3.0-test.apk" download>Download test APK</a> above. Look in <strong>Files → Downloads</strong> if you cannot find it. A GitHub “Source code” ZIP is not the app.</p>
         </li>
         <li>
           <h3>Tap it to install</h3>
