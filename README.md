@@ -15,10 +15,12 @@ network access.
 
 ## Install on a new Android phone
 
-**Getting the app:** This repository is currently private and has no published
-APK release. Ask the maintainer for an APK file; a link to this repository or
-its GitHub Actions builds will not work for people without access. A GitHub
-“Source code” ZIP is not an Android app.
+**Getting the app:** [Download the Android test APK](https://muk-labs.github.io/440Hz/site/440-v0.3.0-test.apk)
+or follow the [illustrated installation page](https://muk-labs.github.io/440Hz/).
+The repository is private, but this test APK is hosted publicly on GitHub Pages.
+It is a debug build: a future update signed with a different key may require
+reinstalling the app, which erases its settings. A GitHub “Source code” ZIP is
+not an Android app.
 
 1. Download the **.apk** file from the maintainer onto your Android phone.
    If you transferred it from a computer, find it in **Files → Downloads**.
@@ -132,10 +134,13 @@ The phone-friendly [installation page](https://muk-labs.github.io/440Hz/) is
 published through GitHub Pages; its source is [`site/index.html`](site/index.html).
 It explains installation, first use, and Android troubleshooting.
 
-There is currently no public APK download. Provide a signed APK through a link
-potential users can actually access, then add that link to both the installation
-page and the section above. This repository is private, so a Release here would
-also require repository access.
+The installation page currently offers a public **v0.3.0 test APK**
+(`site/440-v0.3.0-test.apk`). Its SHA-256 is
+`8def364042d0e3fe10a5eddfe0892a748bf86f19d14c4c1df900aeb740888512`.
+It comes from a successful GitHub Actions debug build. For dependable updates,
+replace it with a release APK signed with a safely retained key and update the
+download link. A Release in this private repository would require repository
+access, so keep the public site link available for potential users.
 
 With Android Studio, generate the Gradle wrapper first as below, open this
 project, then choose **Build → Generate Signed App Bundle or APK → APK**.
