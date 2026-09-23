@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#153c34">
+  <meta name="description" content="Install and set up 440, a small offline Android app for practising your sense of A440.">
+  <title>Install 440 · A little pitch practice</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #173c34;
+      --muted: #50655d;
+      --paper: #f7f7ef;
+      --white: #fffefa;
+      --line: #d8dfd4;
+      --green: #216957;
+      --lime: #dcf39b;
+      --amber: #fff0c9;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--paper); color: var(--ink); line-height: 1.55; }
+    a { color: var(--green); text-underline-offset: .18em; }
+    a:hover { text-decoration-thickness: 2px; }
+    a:focus-visible, summary:focus-visible { outline: 3px solid #cf7b17; outline-offset: 4px; border-radius: 4px; }
+    .skip { position: absolute; left: -9999px; top: 1rem; z-index: 5; background: white; padding: .6rem 1rem; }
+    .skip:focus { left: 1rem; }
+    .wrap { width: min(100% - 2rem, 1040px); margin-inline: auto; }
+    header { background: #153c34; color: #fff; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: 1rem; }
+    .wordmark { display: inline-flex; align-items: center; gap: .7rem; color: white; text-decoration: none; font-weight: 760; font-size: 1.15rem; letter-spacing: -.025em; }
+    .mark { width: 2.15rem; height: 2.15rem; border-radius: 50%; display: grid; place-items: center; background: var(--lime); color: #173c34; font-size: 1.25rem; line-height: 1; }
+    .platform { border: 1px solid #7ca99c; border-radius: 100px; padding: .35rem .75rem; font-size: .8rem; font-weight: 650; white-space: nowrap; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(230px, .7fr); align-items: center; gap: 2rem; padding-block: clamp(2rem, 7vw, 5rem) clamp(2.8rem, 7vw, 5.5rem); }
+    .eyebrow { color: var(--lime); font-size: .79rem; text-transform: uppercase; letter-spacing: .16em; font-weight: 800; }
+    h1 { font-size: clamp(2.5rem, 6vw, 4.7rem); letter-spacing: -.055em; line-height: 1.04; margin: .5rem 0 1.1rem; max-width: 740px; }
+    .hero p { max-width: 620px; color: #d7e9df; font-size: clamp(1rem, 2vw, 1.16rem); margin: 0; }
+    .hero-art { width: min(100%, 270px); aspect-ratio: 1; justify-self: center; border: 1px solid #638d7e; border-radius: 50%; display: grid; place-items: center; position: relative; }
+    .hero-art::before, .hero-art::after { content: ""; position: absolute; inset: 11%; border-radius: 50%; border: 1px solid #628c7a; }
+    .hero-art::after { inset: 23%; }
+    .hero-art span { z-index: 1; display: grid; place-items: center; width: 46%; aspect-ratio: 1; border-radius: 50%; background: var(--lime); color: #153c34; font-size: clamp(2.5rem, 6vw, 3.9rem); font-weight: 800; letter-spacing: -.08em; box-shadow: 0 0 0 10px #153c34; }
+    main { padding-bottom: 3rem; }
+    section { scroll-margin-top: 1rem; }
+    .availability { margin-top: -2rem; position: relative; background: var(--white); border: 1px solid var(--line); border-radius: 1.2rem; box-shadow: 0 12px 35px #153c3414; padding: clamp(1.15rem, 3vw, 1.7rem); display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; }
+    .availability strong { font-size: 1.25rem; letter-spacing: -.025em; }
+    .availability p { margin: .35rem 0 0; color: var(--muted); max-width: 700px; }
+    .pill { background: var(--amber); border-radius: 99px; padding: .45rem .8rem; color: #76510b; font-weight: 750; font-size: .82rem; white-space: nowrap; }
+    .intro { display: flex; flex-wrap: wrap; gap: .55rem 1.5rem; margin: 1.8rem 0 3.5rem; color: var(--muted); font-size: .9rem; }
+    .intro span::before { content: "✓"; color: var(--green); font-weight: 850; margin-right: .45rem; }
+    h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); letter-spacing: -.04em; line-height: 1.14; margin: 0 0 .65rem; }
+    .section-lead { color: var(--muted); margin: 0 0 1.5rem; max-width: 670px; }
+    .steps { list-style: none; counter-reset: install; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 0; padding: 0; }
+    .steps li { counter-increment: install; background: var(--white); border: 1px solid var(--line); border-radius: 1rem; padding: 1.3rem; min-width: 0; }
+    .steps li::before { content: counter(install, decimal-leading-zero); display: inline-grid; place-items: center; width: 2.3rem; height: 2.3rem; background: #e1efdd; border-radius: .65rem; color: var(--green); font-weight: 800; font-size: .89rem; }
+    h3 { font-size: 1.13rem; letter-spacing: -.025em; margin: 1rem 0 .4rem; line-height: 1.3; }
+    .steps p { margin: 0; color: var(--muted); font-size: .94rem; }
+    .steps strong, .faq strong { color: var(--ink); }
+    .aside { margin-top: 1rem; border-left: 4px solid var(--green); padding: .2rem 0 .2rem 1rem; color: var(--muted); font-size: .93rem; }
+    .aside p { margin: .3rem 0; }
+    .practice { margin-top: 3.7rem; padding: clamp(1.35rem, 3vw, 2rem); background: #e6f0de; border-radius: 1.2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .practice p { margin: .6rem 0 0; max-width: 500px; }
+    .practice ol { margin: 0; padding-left: 1.25rem; }
+    .practice li { margin: 0 0 .7rem; padding-left: .3rem; }
+    .practice li:last-child { margin-bottom: 0; }
+    .faq-section { margin-top: 3.7rem; }
+    .faq { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+    details { border: 1px solid var(--line); background: var(--white); border-radius: .85rem; padding: .95rem 1.15rem; align-self: start; }
+    summary { cursor: pointer; font-weight: 750; padding-right: 1.3rem; }
+    details p { margin: .8rem 0 .1rem; color: var(--muted); font-size: .94rem; }
+    .help-links { background: #edf1e8; border-radius: 1rem; padding: 1.35rem; margin-top: 1.3rem; }
+    .help-links h3 { margin: 0 0 .45rem; }
+    .help-links p { margin: 0; color: var(--muted); }
+    footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .87rem; padding: 1.7rem 0 2.5rem; }
+    footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .7rem 2rem; }
+    @media (max-width: 760px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-art { display: none; }
+      .steps { grid-template-columns: repeat(2, 1fr); }
+      .practice { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      .wrap { width: min(100% - 1.5rem, 1040px); }
+      .hero { padding-top: 2.5rem; padding-bottom: 3.5rem; }
+      .availability { grid-template-columns: 1fr; }
+      .pill { justify-self: start; }
+      .steps, .faq { grid-template-columns: 1fr; }
+      .intro { margin-bottom: 2.7rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to instructions</a>
+  <header>
+    <div class="wrap topbar">
+      <a class="wordmark" href="#top" aria-label="440, back to top"><span class="mark" aria-hidden="true">A</span> 440</a>
+      <span class="platform">For Android 8.0+</span>
+    </div>
+    <div class="wrap hero" id="top">
+      <div>
+        <div class="eyebrow">A little pitch practice</div>
+        <h1>Find your A.<br>Take it with you.</h1>
+        <p>440 gives you a gentle vibration at random times. Imagine or sing A, then hear the reference when you are ready. Here is how to install it and try it on your phone.</p>
+      </div>
+      <div class="hero-art" aria-hidden="true"><span>A</span></div>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    <section class="availability" aria-labelledby="download-title">
+      <div>
+        <strong id="download-title">Get the Android APK</strong>
+        <p>The installer has not been published yet. If someone sent you this page, ask them for the official <strong>.apk</strong> file. There is no working public download link at present; we will add one here when a signed build is ready.</p>
+      </div>
+      <span class="pill">Download pending</span>
+    </section>
+    <div class="intro" aria-label="App essentials">
+      <span>Android only (no iPhone version yet)</span>
+      <span>Works offline</span>
+      <span>No account or microphone</span>
+    </div>
+
+    <section id="install" aria-labelledby="install-title">
+      <h2 id="install-title">Install it in three steps</h2>
+      <p class="section-lead">Once you have received the APK from the app's maintainer, do this on your Android phone.</p>
+      <ol class="steps">
+        <li>
+          <h3>Download the APK</h3>
+          <p>Save the file ending in <strong>.apk</strong> to your phone. Look in <strong>Files → Downloads</strong> if you cannot find it. A GitHub “Source code” ZIP is not the app.</p>
+        </li>
+        <li>
+          <h3>Tap it to install</h3>
+          <p>Open the APK and tap <strong>Install</strong>. If Android blocks it, follow the prompt to allow installs <strong>from this source</strong> for the browser or Files app you are using. Return to the file and tap <strong>Install</strong> again.</p>
+        </li>
+        <li>
+          <h3>Open 440</h3>
+          <p>Tap <strong>Open</strong> when installation finishes, or find <strong>440</strong> in your app list. Turn up <strong>media volume</strong> and tap the large <strong>440</strong> button to hear A.</p>
+        </li>
+      </ol>
+      <div class="aside">
+        <p>Phone menus differ. If needed, search Android Settings for <strong>Install unknown apps</strong> and allow the specific app opening the APK. Only install a file you trust. You can switch that permission off again afterwards; keep Play Protect enabled. <a href="https://support.google.com/android/answer/9457058?hl=en" target="_blank" rel="noopener noreferrer">Google's APK installation help</a></p>
+      </div>
+    </section>
+
+    <section class="practice" id="practice" aria-labelledby="practice-title">
+      <div>
+        <h2 id="practice-title">Start practising</h2>
+        <p>440 never plays by itself when you open the app or receive a reminder. You choose when to compare your pitch with the reference.</p>
+      </div>
+      <ol>
+        <li>Switch on <strong>Random reminders</strong> and allow notifications. In <strong>Reminder settings</strong>, choose days, active hours and how often you want a nudge; tap <strong>Save</strong>.</li>
+        <li>Tap <strong>Test reminder</strong>. When the phone vibrates, imagine or sing A. Tap the notification to open 440, then press the large <strong>440</strong> button to hear it.</li>
+        <li>Optional: enable <strong>Shake after reminders</strong>. Test again, wait for the vibration to finish, then give the phone <strong>two brisk shakes within 60 seconds</strong>. A plays once, even with the screen locked on supported phones.</li>
+        <li>Optional: tap <strong>Add home-screen widget</strong> for one-tap playback.</li>
+      </ol>
+    </section>
+
+    <section id="help" class="faq-section" aria-labelledby="help-title">
+      <h2 id="help-title">Something not working?</h2>
+      <p class="section-lead">Try the matching check below. Your phone's menu names may differ a little.</p>
+      <div class="faq">
+        <details>
+          <summary>I cannot hear A</summary>
+          <p>Turn up <strong>media volume</strong>, then tap the large <strong>440</strong> button. Check whether the sound is going to headphones or a Bluetooth speaker.</p>
+        </details>
+        <details>
+          <summary>No reminder or vibration arrives</summary>
+          <p>Check <strong>Random reminders</strong>, your chosen hours/days and whether the run has ended. Tap <strong>Test reminder</strong>. In 440's <strong>Notification settings</strong>, allow notifications and vibration for <strong>Pitch reminders</strong>. Also check Do Not Disturb. Battery saving may delay scheduled reminders.</p>
+        </details>
+        <details>
+          <summary>Shaking does nothing</summary>
+          <p>Turn on both <strong>Random reminders</strong> and <strong>Shake after reminders</strong>. Tap <strong>Test reminder</strong>, wait until the vibration ends, then shake twice briskly within 60 seconds. If needed, try <strong>Reminder settings → Shake sensitivity</strong>. Reopen 440 after a reboot, update or force-stop. Do Not Disturb prevents shake playback. Phones without an accelerometer cannot use this mode.</p>
+        </details>
+        <details>
+          <summary>The APK will not install or update</summary>
+          <p>Check that your phone runs <strong>Android 8.0 or newer</strong> and that the file ends in <strong>.apk</strong>. If an older copy of 440 is installed, ask the maintainer for an update signed with the same key. Do not uninstall the old copy before checking: uninstalling erases its settings. If Android flags the file as unsafe, do not bypass that warning; ask for a verified copy.</p>
+        </details>
+      </div>
+      <div class="help-links">
+        <h3>Android's own help</h3>
+        <p><a href="https://support.google.com/android/answer/9457058?hl=en" target="_blank" rel="noopener noreferrer">Installing apps outside Google Play</a> · <a href="https://support.google.com/android/answer/9079661?hl=en" target="_blank" rel="noopener noreferrer">App notifications and vibration</a> · <a href="https://support.google.com/android/answer/9069335?hl=en" target="_blank" rel="noopener noreferrer">Do Not Disturb</a></p>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="wrap">
+      <span>440 · A small, offline pitch-recall practice app.</span>
+      <span>No account, microphone, analytics or network access.</span>
+    </div>
+  </footer>
+</body>
+</html>
