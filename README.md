@@ -223,3 +223,5 @@ The UI is Kotlin with platform Android views; the independent scheduler is Java.
 
 Code and generated audio: MIT license. This is a pitch-recall practice tool;
 it does not measure singing or claim to establish perfect pitch.
+
+## [ToDo(https://trello.com/c/sgDbwRk5/78-%F0%9F%95%B9440hz-tuningfork)
