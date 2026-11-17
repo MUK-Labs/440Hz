@@ -1,0 +1,13 @@
+<resources>
+    <string name="response_launcher">440 · After reminder</string>
+    <string name="response_shortcut">Hear A after reminder</string>
+    <string name="response_checking">440 · Checking reminder…</string>
+    <string name="response_closed">No unanswered reminder in the last 60 seconds. Reminders must be on and Do Not Disturb off.</string>
+    <string name="response_disabled">Enable Quick Tap / reminder action in the 440 app first.</string>
+    <string name="response_toggle">Quick Tap / reminder action</string>
+    <string name="response_help">Plays A once within 60 seconds of a reminder, without shake detection. Also adds Hear A to the reminder notification. Normal app opening stays silent.</string>
+    <string name="response_setup">Pixel Quick Tap setup</string>
+    <string name="response_setup_help">Enable Random reminders and Quick Tap / reminder action here. On your Pixel, go to Settings → System → Gestures → Quick Tap → Open app. Choose 440 · After reminder if listed. If the picker groups entries under 440, look for the Hear A after reminder shortcut. Do not select the ordinary 440 launch.\n\nUse Test reminder, then try Quick Tap within 60 seconds. Quick Tap availability and screen-off or locked behavior depend on the phone. If its picker offers neither target, use Hear A on the reminder notification or the widget.\n\nShake after reminders can remain off for this alternative.</string>
+    <string name="response_hear">Hear A</string>
+    <string name="shake_diagnostics">Check shake detection</string>
+</resources>

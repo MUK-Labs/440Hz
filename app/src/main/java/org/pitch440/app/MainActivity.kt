@@ -23,6 +23,7 @@ class MainActivity : Activity() {
     private lateinit var status: TextView
     private lateinit var toggle: Switch
     private lateinit var shakeToggle: Switch
+    private lateinit var quickTapToggle: Switch
     private var updating = false
     private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
 
@@ -70,6 +71,7 @@ class MainActivity : Activity() {
             isEnabled = ShakeReminderService.supported(this@MainActivity)
             setOnCheckedChangeListener { _, checked ->
                 if (!updating) {
+                    ReminderResponse.clear(this@MainActivity)
                     Preferences(this@MainActivity).data.edit().putBoolean("shake", checked).apply()
                     ShakeReminderService.syncFromActivity(this@MainActivity)
                     refresh()
@@ -79,6 +81,27 @@ class MainActivity : Activity() {
         content.addView(shakeToggle)
         label(getString(if (ShakeReminderService.supported(this)) R.string.shake_help
             else R.string.shake_unavailable), 13)
+        button(getString(R.string.shake_diagnostics)) {
+            AlertDialog.Builder(this).setTitle(R.string.shake_diagnostics)
+                .setMessage(ShakeReminderService.diagnostics(this))
+                .setPositiveButton("OK", null).show()
+        }
+        quickTapToggle = Switch(this).apply {
+            text = getString(R.string.response_toggle); textSize = 19f; setTextColor(ink)
+            setOnCheckedChangeListener { _, checked ->
+                if (!updating) {
+                    ReminderResponse.clear(this@MainActivity)
+                    ShakeReminderService.cancelWindow()
+                    Preferences(this@MainActivity).data.edit().putBoolean("quickTap", checked).apply()
+                }
+            }
+        }
+        content.addView(quickTapToggle)
+        label(getString(R.string.response_help), 13)
+        button(getString(R.string.response_setup)) {
+            AlertDialog.Builder(this).setTitle(R.string.response_setup)
+                .setMessage(R.string.response_setup_help).setPositiveButton("OK", null).show()
+        }
         button(getString(R.string.widget_add)) {
             val widgets = AppWidgetManager.getInstance(this)
             val provider = ComponentName(this, PitchWidget::class.java)
@@ -108,7 +131,7 @@ class MainActivity : Activity() {
     override fun onResume() { super.onResume(); Reminders.schedule(this); ShakeReminderService.syncFromActivity(this); refresh() }
     private fun refresh() {
         val p = Preferences(this)
-        updating = true; toggle.isChecked = p.enabled; shakeToggle.isChecked = p.shake; updating = false
+        updating = true; toggle.isChecked = p.enabled; shakeToggle.isChecked = p.shake; quickTapToggle.isChecked = p.quickTap; updating = false
         val ch = getSystemService(NotificationManager::class.java).getNotificationChannel(Reminders.CHANNEL)
         status.text = when {
             !p.enabled -> "Reminders are off. The 440 button is always ready."

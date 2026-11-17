@@ -1,0 +1,8 @@
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="hear_after_reminder" android:enabled="true"
+        android:icon="@drawable/ic_note" android:shortcutShortLabel="@string/response_shortcut">
+        <intent android:action="org.pitch440.app.PLAY_AFTER_REMINDER"
+            android:targetPackage="org.pitch440.app"
+            android:targetClass="org.pitch440.app.ReminderPlayActivity" />
+    </shortcut>
+</shortcuts>

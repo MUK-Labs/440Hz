@@ -14,6 +14,7 @@ object TonePlayback {
     private var active: Session? = null
 
     fun play(context: Context, owner: Any, onStopped: () -> Unit = {}) {
+        ReminderResponse.clear(context)
         ShakeReminderService.manualPlayback(owner)
         active?.close()
         val session = Session(context.applicationContext, owner, onStopped)

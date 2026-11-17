@@ -13,6 +13,52 @@ audio automatically. The button works with reminders off, too. A home-screen
 widget also plays the tone directly. No microphone, accounts, analytics or
 network access.
 
+## Pixel Quick Tap and gesture compatibility (0.4.0)
+
+Pixel 8 has an accelerometer: shake detection does not depend on a manufacturer
+“shake gesture” setting. Version 0.4.0 tries the normal accelerometer if wake-up
+sensor registration fails, and adds **Check shake detection**. Use **Test reminder**,
+wait for the vibration to finish, shake twice, then inspect the diagnostic report.
+It includes registration errors, sensor/sample data, peak strength, service status,
+notification permission and Do Not Disturb. Try **Gentle** under Reminder settings
+if samples arrive but the peak remains below the threshold. No Pixel-specific root
+cause has been confirmed and these changes still need testing on that phone.
+
+For an alternative independent of the motion service:
+
+1. Enable **Random reminders** and **Quick Tap / reminder action** in 440.
+   **Shake after reminders** can stay off.
+2. On Pixel, open **Settings → System → Gestures → Quick Tap → Open app** and
+   the app picker. Select **440 · After reminder** if listed separately. If your
+   picker groups it under **440**, look for the **Hear A after reminder** shortcut.
+   The exact picker depends on the Pixel software version. Selecting the ordinary
+   440 entry only opens settings; it intentionally does not play sound.
+3. Use **Test reminder**, then Quick Tap within 60 seconds. You can also tap
+   **Hear A** on the reminder notification, or launch the dedicated action manually.
+
+The separate launcher entry and static shortcut are provided for gesture pickers;
+Google documents Quick Tap opening apps, but does not guarantee that every picker
+will expose both entries/shortcuts. If neither appears, use the notification action
+or widget. Quick Tap screen-off and locked-phone behavior must be tested on the
+actual Pixel; this app does not bypass Android's lock screen. Notification actions
+may also be subject to lock-screen settings.
+
+The reminder response is once-only across shake, Quick Tap and the notification
+action. Timeout, disabling reminders, session expiry, blocked notifications, DND,
+manual app/widget playback and reboot prevent a stale response. Quick Tap requires
+its explicit opt-in switch. A routine process restart can read the original live
+response deadline, but never extends it or starts playback itself. The shake sensor
+window is still not restored on a service restart. Normal app launch stays silent.
+The Quick Tap-only mode has no continuously running motion service or sensor listener.
+
+Automated checks cover the response deadline, repeat consumption, invalid/disabled
+responses, reboot and process recreation. Pixel picker behavior, locked-phone audio
+and sensor behavior are device acceptance checks, not verified by compilation.
+
+Sources: [Google Quick Tap help](https://support.google.com/pixelphone/answer/7443425),
+[Pixel hardware specifications](https://support.google.com/pixelphone/answer/7158570?hl=en),
+[Android shortcuts](https://developer.android.com/develop/ui/compose/system/shortcuts/creating-shortcuts).
+
 ## Install on a new Android phone
 
 **Getting the app:** [Download the Android test APK](https://muk-labs.github.io/440Hz/site/440-v0.3.0-test.apk)

@@ -8,6 +8,7 @@ import android.content.pm.ServiceInfo
 import android.hardware.*
 import android.os.*
 import android.widget.Toast
+import java.util.Locale
 import kotlin.math.sqrt
 
 /** User-enabled foreground session; sensors run ONLY after a delivered reminder. */
@@ -18,9 +19,61 @@ class ShakeReminderService : Service(), SensorEventListener,
         private const val NOTIFICATION = 442
         private const val STOP = "org.pitch440.app.STOP_SHAKE"
         private var active: ShakeReminderService? = null
+        private var lastStartResult = "Not started in this app process"
+        private var lastWindowStarted = -1L
+        private var lastRegistration = "No reminder window attempted"
+        private var lastSensorName = "None"
+        private var sampleCount = 0L
+        private var freshSampleCount = 0L
+        private var peakG = 0.0
+        private var lastSampleTime = -1L
 
-        fun supported(c: Context) =
-            c.getSystemService(SensorManager::class.java).getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null
+        fun supported(c: Context): Boolean {
+            val sensors = c.getSystemService(SensorManager::class.java)
+            return sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, true) != null ||
+                sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, false) != null
+        }
+
+        /** Read-only snapshot; does not register a sensor, create a channel, or arm a window. */
+        fun diagnostics(c: Context): String {
+            val p = Preferences(c)
+            val nm = c.getSystemService(NotificationManager::class.java)
+            val channel = nm.getNotificationChannel(Reminders.CHANNEL)
+            val now = SystemClock.elapsedRealtime()
+            val service = active
+            val listening = service?.ready == true && service.listening && service.gate.isArmed(now)
+            val notificationState = when {
+                !nm.areNotificationsEnabled() -> "Blocked for this app"
+                channel == null -> "Reminder channel not created yet"
+                channel.importance == NotificationManager.IMPORTANCE_NONE -> "Reminder channel blocked"
+                else -> "Allowed"
+            }
+            val dnd = when (nm.currentInterruptionFilter) {
+                NotificationManager.INTERRUPTION_FILTER_ALL -> "Off"
+                NotificationManager.INTERRUPTION_FILTER_UNKNOWN -> "Unknown (gesture is not armed)"
+                else -> "On (gesture is not armed)"
+            }
+            val sampleAge = if (lastSampleTime < 0) "No samples received"
+                else if (lastSampleTime > now) "Sensor timestamp is ahead of the clock"
+                else "${now - lastSampleTime} ms"
+            return listOf(
+                "Phone: ${Build.MANUFACTURER} ${Build.MODEL} · Android ${Build.VERSION.RELEASE}",
+                "Accelerometer: ${if (supported(c)) "Available" else "Unavailable"}",
+                "Reminders: ${if (p.enabled) "On" else "Off"} · Shake: ${if (p.shake) "On" else "Off"}",
+                "Session eligible: ${if (enabled(c)) "Yes" else "No (disabled or expired)"}",
+                "Notifications: $notificationState · Do Not Disturb: $dnd",
+                "Service: ${if (service?.ready == true) "Running" else "Not running"}",
+                "Last start: $lastStartResult",
+                "Motion sensing: ${if (listening) "Listening in reminder window" else "Off"}",
+                "Last window: ${if (lastWindowStarted < 0) "None in this process" else "${(now - lastWindowStarted) / 1000} seconds ago"}",
+                "Registration: $lastRegistration",
+                "Sensor: $lastSensorName",
+                "Samples in last window: $sampleCount received; $freshSampleCount within freshness limit",
+                "Peak acceleration: ${String.format(Locale.ROOT, "%.2f", peakG)} g · Threshold: ${p.shakeThreshold} g",
+                "Age of last sensor reading: $sampleAge",
+                "Use Test reminder, wait for vibration to finish, shake twice, then reopen this report. Measurements remain until the next window or app-process restart."
+            ).joinToString("\n")
+        }
 
         private fun enabled(c: Context): Boolean {
             val p = Preferences(c)
@@ -31,8 +84,10 @@ class ShakeReminderService : Service(), SensorEventListener,
         fun syncFromActivity(c: Context) {
             if (enabled(c) && supported(c) && Reminders.allowed(c)) {
                 if (active?.ready == true) return
+                lastStartResult = "Starting"
                 try { c.startForegroundService(Intent(c, ShakeReminderService::class.java)) }
-                catch (_: RuntimeException) {
+                catch (error: RuntimeException) {
+                    lastStartResult = "Failed: ${error.javaClass.simpleName}"
                     Preferences(c).data.edit().putBoolean("shake", false).apply()
                     Toast.makeText(c, R.string.shake_start_failed, Toast.LENGTH_LONG).show()
                 }
@@ -64,6 +119,7 @@ class ShakeReminderService : Service(), SensorEventListener,
     private val gate = ReminderShakeGate()
     private var ready = false
     private var destroyed = false
+    private var listening = false
     private val timeout = Runnable { endWindow() }
     private val reconcile = object : Runnable {
         override fun run() {
@@ -100,6 +156,7 @@ class ShakeReminderService : Service(), SensorEventListener,
         try {
             foreground(R.string.shake_waiting)
             ready = true
+            lastStartResult = "Started successfully"
             if (intent?.action == STOP) prefs.edit().putBoolean("shake", false).apply()
             if (!enabled(this) || !supported(this) || !Reminders.allowed(this)) {
                 shutdown()
@@ -107,7 +164,8 @@ class ShakeReminderService : Service(), SensorEventListener,
             }
             handler.removeCallbacks(reconcile)
             reconcile.run()
-        } catch (_: RuntimeException) {
+        } catch (error: RuntimeException) {
+            lastStartResult = "Failed: ${error.javaClass.simpleName}"
             prefs.edit().putBoolean("shake", false).apply()
             shutdown()
             return START_NOT_STICKY
@@ -144,24 +202,61 @@ class ShakeReminderService : Service(), SensorEventListener,
         endWindow()
         TonePlayback.stop(this)
         if (!ready || !enabled(this) || !Reminders.allowed(this)) return
-        val sensor = sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, true)
-            ?: sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) ?: return
+        lastWindowStarted = SystemClock.elapsedRealtime()
+        sampleCount = 0
+        freshSampleCount = 0
+        peakG = 0.0
+        lastSampleTime = -1
+        lastSensorName = "None"
+        val candidates = listOfNotNull(
+            sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, true),
+            sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, false)
+        ).distinct()
+        if (candidates.isEmpty()) {
+            lastRegistration = "Failed: no accelerometer"
+            return
+        }
         try {
             gate.arm(SystemClock.elapsedRealtime(), Preferences(this).shakeThreshold)
             // Bounded CPU wake lock for screen-off phones with non-wakeup accelerometers.
             wake.acquire(ReminderShakeGate.WINDOW_MS + 5000)
-            if (!sensors.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME, handler)) {
+            val attempts = mutableListOf<String>()
+            for (sensor in candidates) {
+                val kind = if (sensor.isWakeUpSensor) "Wake-up" else "Normal"
+                val registered = try {
+                    sensors.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME, handler)
+                } catch (error: RuntimeException) {
+                    attempts.add("$kind failed: ${error.javaClass.simpleName}")
+                    false
+                }
+                if (registered) {
+                    listening = true
+                    lastSensorName = sensor.name
+                    attempts.add("$kind registered")
+                    break
+                }
+                // A present wake-up sensor is not necessarily usable. Try the normal one.
+                sensors.unregisterListener(this)
+                if (attempts.lastOrNull()?.startsWith("$kind failed:") != true)
+                    attempts.add("$kind registration returned false")
+            }
+            lastRegistration = attempts.joinToString("; ")
+            if (!listening) {
                 endWindow()
                 return
             }
             handler.postDelayed(timeout, ReminderShakeGate.WINDOW_MS)
             foreground(R.string.shake_listening)
-        } catch (_: RuntimeException) { endWindow() }
+        } catch (error: RuntimeException) {
+            lastRegistration = "Window failed: ${error.javaClass.simpleName}"
+            endWindow()
+        }
     }
 
     private fun endWindow() {
         gate.disarm()
         sensors.unregisterListener(this)
+        listening = false
         handler.removeCallbacks(timeout)
         if (wake.isHeld) wake.release()
         if (ready && !destroyed) foreground(R.string.shake_waiting)
@@ -171,14 +266,19 @@ class ShakeReminderService : Service(), SensorEventListener,
         val now = SystemClock.elapsedRealtime()
         if (!gate.isArmed(now) || !enabled(this) || !canArm(this)) { endWindow(); return }
         val timestamp = event.timestamp / 1_000_000
-        // Discard buffered readings, including those taken before this window.
-        if (timestamp > now || now - timestamp > 250) return
         val x = event.values[0].toDouble()
         val y = event.values[1].toDouble()
         val z = event.values[2].toDouble()
-        if (gate.sample(timestamp, sqrt(x*x + y*y + z*z) / SensorManager.GRAVITY_EARTH)) {
+        val magnitude = sqrt(x*x + y*y + z*z) / SensorManager.GRAVITY_EARTH
+        sampleCount++
+        lastSampleTime = timestamp
+        if (magnitude.isFinite()) peakG = maxOf(peakG, magnitude)
+        // Count delayed readings in diagnostics, but never use them to trigger playback.
+        if (timestamp > now || now - timestamp > 250) return
+        freshSampleCount++
+        if (gate.sample(timestamp, magnitude)) {
             endWindow() // Consume before playing, even if focus is denied.
-            if (!Reminders.allowed(this)) return
+            if (!ReminderResponse.consume(this, requireQuickTap = false)) return
             try {
                 wake.acquire(10_000)
                 foreground(R.string.shake_playing, true)

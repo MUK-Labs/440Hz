@@ -14,14 +14,20 @@ import android.widget.Toast
 /** Started only by an explicit widget tap; never restarted automatically. */
 class WidgetToneService : Service() {
     companion object {
+        const val PLAY_REMINDER = "org.pitch440.app.PLAY_REMINDER_TONE"
         const val PLAY = "org.pitch440.app.PLAY_WIDGET_TONE"
         private const val CHANNEL = "widget_playback"
         private const val NOTIFICATION = 441
     }
 
+    private var playbackActive = false
+    private var generation = 0
+    private var latestStartId = 0
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        latestStartId = startId
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(
             NotificationChannel(CHANNEL, getString(R.string.widget_playback_channel),
@@ -49,10 +55,20 @@ class WidgetToneService : Service() {
             } else {
                 startForeground(NOTIFICATION, notification)
             }
-            if (intent?.action == PLAY) {
-                TonePlayback.play(this, this) { stopSelf(startId) }
+            if (intent?.action == PLAY ||
+                (intent?.action == PLAY_REMINDER && ReminderResponse.consume(this))) {
+                val current = ++generation
+                playbackActive = true
+                TonePlayback.play(this, this) {
+                    if (current == generation) {
+                        playbackActive = false
+                        stopSelf(latestStartId)
+                    }
+                }
             } else {
-                stopSelf(startId)
+                if (intent?.action == PLAY_REMINDER) Toast.makeText(this,
+                    R.string.response_closed, Toast.LENGTH_SHORT).show()
+                if (!playbackActive) stopSelf(startId)
             }
         } catch (_: RuntimeException) {
             stopSelf(startId)
@@ -62,6 +78,8 @@ class WidgetToneService : Service() {
     }
 
     override fun onDestroy() {
+        generation++
+        playbackActive = false
         TonePlayback.stop(this)
         stopForeground(STOP_FOREGROUND_REMOVE)
         super.onDestroy()
