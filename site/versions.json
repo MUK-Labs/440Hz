@@ -1,0 +1,18 @@
+{
+  "versions": [
+    {
+      "version": "0.4.0",
+      "versionCode": 4,
+      "url": "440-v0.4.0-test.apk",
+      "sizeBytes": 1141242,
+      "sha256": "59aadfb7056710693adb6d03e0a2f0bc3cf45111fbaa8292bd2a6bd3c1bb40c8"
+    },
+    {
+      "version": "0.3.0",
+      "versionCode": 3,
+      "url": "440-v0.3.0-test.apk",
+      "sizeBytes": 1132127,
+      "sha256": "8def364042d0e3fe10a5eddfe0892a748bf86f19d14c4c1df900aeb740888512"
+    }
+  ]
+}

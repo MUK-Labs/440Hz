@@ -271,3 +271,23 @@ Code and generated audio: MIT license. This is a pitch-recall practice tool;
 it does not measure singing or claim to establish perfect pitch.
 
 ## [ToDo](https://trello.com/c/sgDbwRk5/78-%F0%9F%95%B9440hz-tuningfork)
+
+## Public downloads and version history
+
+Share **https://muk-labs.github.io/440Hz/**. Its version selector defaults to the
+highest published numeric version, and every download link follows the selection.
+The original verified 0.4.0 and older 0.3.0 APKs are bundled under `site/` with
+SHA-256 checksums in `site/versions.json`. They are never replaced by a rebuild.
+
+After the Android build, checks and lint succeed on `main`, the publishing job
+creates a public GitHub Release for a new `versionName` (numeric X.Y.Z), with a
+`440-vX.Y.Z-test.apk` asset. Increase both `versionName` and `versionCode` for an
+update. Existing bundled versions/releases/tags are not overwritten. Pull-request
+builds do not publish. Each release points at the tested source commit. The page
+reads public Releases automatically; no manual page edit is needed for new versions.
+
+If the release API is unavailable or rate-limited, the page clearly reports that it
+could not check for newer versions and keeps the bundled downloads usable. Without
+JavaScript, the fallback is the bundled 0.4.0 download. Installing updates is manual;
+fresh CI debug signing keys can require a reinstall. This publishing pipeline does
+not create a permanent release signing key or change Android's update requirements.

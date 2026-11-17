@@ -24,7 +24,7 @@
     body { margin: 0; background: var(--paper); color: var(--ink); line-height: 1.55; }
     a { color: var(--green); text-underline-offset: .18em; }
     a:hover { text-decoration-thickness: 2px; }
-    a:focus-visible, summary:focus-visible { outline: 3px solid #cf7b17; outline-offset: 4px; border-radius: 4px; }
+    a:focus-visible, summary:focus-visible, select:focus-visible { outline: 3px solid #cf7b17; outline-offset: 4px; border-radius: 4px; }
     .skip { position: absolute; left: -9999px; top: 1rem; z-index: 5; background: white; padding: .6rem 1rem; }
     .skip:focus { left: 1rem; }
     .wrap { width: min(100% - 2rem, 1040px); margin-inline: auto; }
@@ -48,6 +48,12 @@
     .availability p { margin: .35rem 0 0; color: var(--muted); max-width: 700px; }
     .download { display: inline-flex; align-items: center; justify-content: center; gap: .55rem; min-height: 3.3rem; padding: .8rem 1.2rem; border-radius: .75rem; background: var(--lime); color: var(--ink); text-decoration: none; font-weight: 800; text-align: center; white-space: nowrap; }
     .download:hover { background: #c9eb78; }
+    .download-controls { display: grid; gap: .55rem; min-width: min(100%, 240px); }
+    .download-controls label { font-weight: 750; font-size: .9rem; }
+    .download-controls select { width: 100%; min-height: 2.8rem; padding: .55rem .7rem; border: 1px solid var(--line); border-radius: .65rem; background: var(--white); color: var(--ink); font: inherit; }
+    .availability .download-status { font-size: .86rem; margin-top: .7rem; }
+    .download-controls .download { white-space: normal; }
+    .download-controls noscript { font-size: .88rem; }
     .intro { display: flex; flex-wrap: wrap; gap: .55rem 1.5rem; margin: 1.8rem 0 3.5rem; color: var(--muted); font-size: .9rem; }
     .intro span::before { content: "✓"; color: var(--green); font-weight: 850; margin-right: .45rem; }
     h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); letter-spacing: -.04em; line-height: 1.14; margin: 0 0 .65rem; }
@@ -113,9 +119,18 @@
     <section class="availability" aria-labelledby="download-title">
       <div>
         <strong id="download-title">Download 440 for Android</strong>
-        <p>This is a <strong>test build (v0.3.0, 1.1 MB)</strong> for Android 8.0 and newer. It is not a Play Store release. A future update signed with a different key may require reinstalling the app, which resets your reminder settings.</p>
+        <p>This is a <strong>test build (<span id="selected-version">v0.4.0</span>)</strong> for Android 8.0 and newer. It is not a Play Store release. A future update signed with a different key may require reinstalling the app, which resets your reminder settings.</p>
       </div>
-      <a class="download" href="440-v0.3.0-test.apk" download>Download test APK <span aria-hidden="true">↓</span></a>
+      <div class="download-controls">
+        <label for="version-select">Choose a version</label>
+        <select id="version-select" aria-describedby="download-status" disabled>
+          <option value="0.4.0" selected>v0.4.0 · Newest</option>
+          <option value="0.3.0">v0.3.0</option>
+        </select>
+        <a class="download" href="440-v0.4.0-test.apk" data-apk-download download>Download test APK <span aria-hidden="true">↓</span></a>
+        <noscript>The button downloads v0.4.0. <a href="440-v0.3.0-test.apk" download>Download older v0.3.0</a>.</noscript>
+      </div>
+      <p id="download-status" class="download-status" role="status" aria-live="polite">The newest available version is selected by default. Updates are installed manually.</p>
     </section>
     <div class="intro" aria-label="App essentials">
       <span>Android only (no iPhone version yet)</span>
@@ -129,7 +144,7 @@
       <ol class="steps">
         <li>
           <h3>Download the APK</h3>
-          <p>Tap <a href="440-v0.3.0-test.apk" download>Download test APK</a> above. Look in <strong>Files → Downloads</strong> if you cannot find it. A GitHub “Source code” ZIP is not the app.</p>
+          <p>Tap <a href="440-v0.4.0-test.apk" data-apk-download download>Download test APK</a> above. Look in <strong>Files → Downloads</strong> if you cannot find it. A GitHub “Source code” ZIP is not the app.</p>
         </li>
         <li>
           <h3>Tap it to install</h3>
@@ -191,5 +206,6 @@
       <span>No account, microphone, analytics or network access.</span>
     </div>
   </footer>
+  <script src="downloads.js" defer></script>
 </body>
 </html>

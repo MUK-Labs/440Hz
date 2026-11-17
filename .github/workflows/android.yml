@@ -22,6 +22,8 @@ jobs:
           gradle-version: '8.11.1'
       - name: Scheduling checks
         run: bash tools/check.sh
+      - name: APK publication checks
+        run: python3 -m unittest discover -s tools -p 'test_publish_apk.py'
       - name: Build and lint
         run: gradle --no-daemon :app:assembleDebug :app:lintDebug
       - uses: actions/upload-artifact@v4
@@ -34,3 +36,26 @@ jobs:
           name: android-lint
           path: app/build/reports/lint-results-debug.html
           if-no-files-found: ignore
+  publish:
+    name: Publish a new test version
+    needs: build
+    if: github.repository == 'MUK-Labs/440Hz' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    concurrency:
+      group: publish-440-test-apk
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: pitch440-debug-apk
+          path: apk
+      - name: Publish only a new version after successful checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/publish-apk.py --apk apk/app-debug.apk
