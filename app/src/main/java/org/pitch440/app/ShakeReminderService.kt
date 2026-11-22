@@ -183,7 +183,7 @@ class ShakeReminderService : Service(), SensorEventListener,
         val notification = Notification.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_note)
             .setContentTitle(getString(R.string.shake_title))
-            .setContentText(getString(text))
+            .setContentText(getString(text, PitchNotes.label(PitchPractice.current(this))))
             .setContentIntent(open)
             .setOngoing(true).setOnlyAlertOnce(true)
             .addAction(Notification.Action.Builder(null, getString(R.string.shake_turn_off), stop).build())
@@ -278,11 +278,11 @@ class ShakeReminderService : Service(), SensorEventListener,
         freshSampleCount++
         if (gate.sample(timestamp, magnitude)) {
             endWindow() // Consume before playing, even if focus is denied.
-            if (!ReminderResponse.consume(this, requireQuickTap = false)) return
+            val pitch = ReminderResponse.consumePitch(this, requireQuickTap = false) ?: return
             try {
                 wake.acquire(10_000)
                 foreground(R.string.shake_playing, true)
-                TonePlayback.play(this, this) {
+                TonePlayback.play(this, this, pitch) {
                     if (wake.isHeld) wake.release()
                     if (ready && !destroyed) foreground(R.string.shake_waiting)
                 }

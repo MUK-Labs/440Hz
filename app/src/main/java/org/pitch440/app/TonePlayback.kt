@@ -13,11 +13,11 @@ import android.widget.Toast
 object TonePlayback {
     private var active: Session? = null
 
-    fun play(context: Context, owner: Any, onStopped: () -> Unit = {}) {
+    fun play(context: Context, owner: Any, pitch: Int = PitchNotes.A, onStopped: () -> Unit = {}) {
         ReminderResponse.clear(context)
         ShakeReminderService.manualPlayback(owner)
         active?.close()
-        val session = Session(context.applicationContext, owner, onStopped)
+        val session = Session(context.applicationContext, owner, PitchNotes.normalizePitch(pitch), onStopped)
         active = session
         session.start()
     }
@@ -26,7 +26,24 @@ object TonePlayback {
         active?.takeIf { it.owner === owner }?.close()
     }
 
-    private class Session(val context: Context, val owner: Any, val onStopped: () -> Unit) {
+    fun stopAll() { active?.close() }
+
+    private fun resource(pitch: Int): Int = when (pitch) {
+        0 -> R.raw.c4
+        1 -> R.raw.cs4
+        2 -> R.raw.d4
+        3 -> R.raw.ds4
+        4 -> R.raw.e4
+        5 -> R.raw.f4
+        6 -> R.raw.fs4
+        7 -> R.raw.g4
+        8 -> R.raw.gs4
+        10 -> R.raw.as4
+        11 -> R.raw.b4
+        else -> R.raw.a440
+    }
+
+    private class Session(val context: Context, val owner: Any, val pitch: Int, val onStopped: () -> Unit) {
         private val handler = Handler(Looper.getMainLooper())
         private val audio = context.getSystemService(AudioManager::class.java)
         private val attributes = AudioAttributes.Builder()
@@ -51,7 +68,7 @@ object TonePlayback {
                     close()
                     return
                 }
-                val created = MediaPlayer.create(context, R.raw.a440, attributes, 0)
+                val created = MediaPlayer.create(context, resource(pitch), attributes, 0)
                     ?: throw IllegalStateException("Could not load tone")
                 player = created
                 created.setOnCompletionListener { close() }

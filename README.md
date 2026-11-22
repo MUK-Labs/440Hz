@@ -1,17 +1,43 @@
 # 440
 
-A small offline Android app for practising recall of A440.
+A small offline Android app for practising pitch recall, starting with A440.
 
 **Android only:** Requires Android 8.0 or newer. There is no iPhone version or
 Play Store listing yet.
 
-Your phone gives a quiet double vibration at random intervals. Imagine or sing
-A; when ready, open the notification and press **440** to hear the reference.
+Your phone gives a quiet double vibration at random intervals. Read the pitch in
+the notification, imagine or sing it, then press the app's playback button to hear
+the reference. **A is the only practice pitch by default.** From version 0.5.0,
+you can gradually add other pitch classes in **Practice pitches**.
 Or, with **Shake after reminders** enabled, shake the phone twice within 60 seconds
-of the vibration to hear A without opening the app. Opening the app never plays
-audio automatically. The button works with reminders off, too. A home-screen
-widget also plays the tone directly. No microphone, accounts, analytics or
-network access.
+of the vibration to hear the prompted pitch without opening the app. Opening the
+app never plays audio automatically. The button works with reminders off, too.
+A home-screen widget also plays the current reference directly. No microphone,
+accounts, analytics or network access.
+
+## Choose your practice pitches (0.5.0)
+
+Open **Practice pitches**, select any of the twelve pitch classes, and save.
+At least one must remain selected. Start with A alone, add a second pitch when
+you want to expand your practice, and add or remove others at your own pace.
+Enharmonic names such as C♯ / D♭ refer to one selection.
+
+Each reminder chooses uniformly from your selected pitches: all selected pitches
+have the same chance, and consecutive reminders can repeat a pitch. **New practice
+prompt** makes a fresh random choice whenever you want to practise manually,
+including with reminders off. A new prompt does not play sound automatically.
+
+The notification names the pitch to recall. The app button, home-screen widget,
+shake response and Quick Tap all play that same pitch; pressing play does not draw
+another one. The current prompt persists when you reopen the app. Changing the
+practice pool clears any pending reminder response; if the current pitch remains
+selected it stays current, otherwise a new pitch is chosen from the new pool.
+
+References use C4–B4 in twelve-tone equal temperament, with A4 = 440 Hz. This first
+version varies pitch class within one octave, not register. You compare your own
+singing or imagined pitch with the reference: the app neither records nor grades
+it. The feature supports pitch-memory practice and does not guarantee absolute
+pitch.
 
 ## Pixel Quick Tap and gesture compatibility (0.4.0)
 
@@ -30,11 +56,13 @@ For an alternative independent of the motion service:
    **Shake after reminders** can stay off.
 2. On Pixel, open **Settings → System → Gestures → Quick Tap → Open app** and
    the app picker. Select **440 · After reminder** if listed separately. If your
-   picker groups it under **440**, look for the **Hear A after reminder** shortcut.
+   picker groups it under **440**, look for **Hear pitch after reminder**
+   (**Hear A after reminder** in version 0.4.0).
    The exact picker depends on the Pixel software version. Selecting the ordinary
    440 entry only opens settings; it intentionally does not play sound.
 3. Use **Test reminder**, then Quick Tap within 60 seconds. You can also tap
-   **Hear A** on the reminder notification, or launch the dedicated action manually.
+   **Hear** on the reminder notification (labelled with the prompted pitch), or
+   launch the dedicated action manually. In version 0.4.0 the action is **Hear A**.
 
 The separate launcher entry and static shortcut are provided for gesture pickers;
 Google documents Quick Tap opening apps, but does not guarantee that every picker
@@ -61,9 +89,9 @@ Sources: [Google Quick Tap help](https://support.google.com/pixelphone/answer/74
 
 ## Install on a new Android phone
 
-**Getting the app:** [Download the Android test APK](https://muk-labs.github.io/440Hz/site/440-v0.3.0-test.apk)
-or follow the [step-by-step installation page](https://muk-labs.github.io/440Hz/).
-The repository is private, but this test APK is hosted publicly on GitHub Pages.
+**Getting the app:** Open the [download and installation page](https://muk-labs.github.io/440Hz/).
+It selects the newest published version by default; use the dropdown for an older
+version. APKs are available publicly through GitHub Pages or GitHub Releases.
 It is a debug build: a future update signed with a different key may require
 reinstalling the app, which erases its settings. A GitHub “Source code” ZIP is
 not an Android app.
@@ -83,34 +111,37 @@ installation error while updating an older test build, see
 
 ## Set it up and try it
 
-1. Turn up **media volume** and tap the large **440** button. You should hear
-   a three-second A. Check whether sound goes to headphones or a Bluetooth
-   device if the phone seems silent.
+1. Turn up **media volume** and tap the large playback button. With the default
+   A-only selection it shows **440**, and you should hear a three-second A. Check
+   whether sound goes to headphones or a Bluetooth device if the phone seems silent.
 2. Switch on **Random reminders** and allow notifications when Android asks.
    Open **Reminder settings** to choose your active days and hours, reminder
    frequency, and how long the reminders should run; then tap **Save**.
 3. Tap **Test reminder**. You should get a quiet notification with a double
-   vibration. Imagine or sing A, tap the notification to open the app, then
-   press **440** to compare. Tapping the notification alone does not play sound.
+   vibration. Read the pitch in the notification (A by default), imagine or sing
+   it, then tap the notification and press the playback button to compare.
+   Tapping the notification alone does not play sound.
 4. Optionally enable **Shake after reminders**. Tap **Test reminder** again,
    wait for the vibration to finish, and shake the phone twice briskly within
-   60 seconds to hear A without opening the app. This can work with the screen
-   locked. A quiet ongoing notification indicates shake mode is available.
+   60 seconds to hear the prompted pitch without opening the app. This can work
+   with the screen locked. A quiet ongoing notification indicates shake mode is available.
    The option is unavailable on phones without an accelerometer.
 5. Optionally tap **Add home-screen widget** for a one-tap reference tone.
+6. In version 0.5.0 or newer, open **Practice pitches** to add other pitch classes.
+   Use **New practice prompt** for an extra round without waiting for a reminder.
 
 ## Troubleshooting
 
 - **No sound:** Raise *media* volume, check the current speaker or headphones,
-  and use the large **440** button to test playback.
+  and use the large playback button to test playback.
 - **No reminder or vibration:** Check that **Random reminders** is on, your
   chosen hours and days include the current time, and the run has not ended.
   In **Notification settings**, allow notifications for 440 and vibration for
   **Pitch reminders**. Do Not Disturb can silence them. **Test reminder** lets
   you check without waiting for a random delivery. Android battery saving can
   delay or reduce scheduled reminders.
-- **Shake does not play A:** Enable both **Random reminders** and **Shake after
-  reminders**. Keep the phone in your hand; wait for the vibration to end and
+- **Shake does not play the reference:** Enable both **Random reminders** and
+  **Shake after reminders**. Keep the phone in your hand; wait for the vibration to end and
   shake twice within 60 seconds. Try **Reminder settings → Shake sensitivity**
   if needed. Open the app again after a reboot, update, or force-stop to resume
   locked-screen shake. Do Not Disturb disables shake playback.
@@ -125,8 +156,9 @@ Open **440** and tap **Add home-screen widget**.
 Confirm placement in your launcher's prompt. Alternatively, long-press an empty
 part of your home screen, choose **Widgets**, and drag **440** onto it.
 
-Tap the green **440** widget to hear the same three-second reference without
-opening the app. It works with reminders off and can be resized on launchers
+Tap the green widget to hear the current three-second reference without opening
+the app. From version 0.5.0 its label follows the current prompt; it shows **440**
+for A. It works with reminders off and can be resized on launchers
 that support it. Media volume and the current speaker/headphones apply.
 
 Only a tap starts playback. Adding/resizing the widget, rebooting, and receiving
@@ -138,8 +170,8 @@ and the app button. The widget has no periodic updates or continuously running s
 ## Reminder-only shake (0.3.0)
 
 Enable **Random reminders** and **Shake after reminders** in the app.
-After each delivered reminder, recall A and give the phone two brisk shakes
-within 60 seconds. The tone plays once; sensing then stops until the next reminder.
+After each delivered reminder, recall the named pitch and give the phone two
+brisk shakes within 60 seconds. The tone plays once; sensing then stops until the next reminder.
 Keep the phone in your hand. **Reminder settings → Shake sensitivity** offers
 Gentle, Normal, and Firm. Normal is the default; shake mode defaults to off.
 
@@ -180,13 +212,12 @@ The phone-friendly [installation page](https://muk-labs.github.io/440Hz/) is
 published through GitHub Pages; its source is [`site/index.html`](site/index.html).
 It explains installation, first use, and Android troubleshooting.
 
-The installation page currently offers a public **v0.3.0 test APK**
-(`site/440-v0.3.0-test.apk`). Its SHA-256 is
-`8def364042d0e3fe10a5eddfe0892a748bf86f19d14c4c1df900aeb740888512`.
-It comes from a successful GitHub Actions debug build. For dependable updates,
-replace it with a release APK signed with a safely retained key and update the
-download link. A Release in this private repository would require repository
-access, so keep the public site link available for potential users.
+The installation page combines the bundled v0.3.0 and v0.4.0 test APKs with newer
+public GitHub Releases and defaults to the highest available version. Bundled APK
+checksums are recorded in `site/versions.json`; each automated release includes
+its APK checksum and tested source commit. Downloads are debug builds. For
+dependable in-place updates, use a release APK signed with a safely retained key;
+a fresh CI debug key can require reinstalling, which erases the app's settings.
 
 With Android Studio, generate the Gradle wrapper first as below, open this
 project, then choose **Build → Generate Signed App Bundle or APK → APK**.
@@ -214,6 +245,8 @@ The UI is Kotlin with platform Android views; the independent scheduler is Java.
 
 ## Settings and behavior
 
+- A-only practice by default; choose any non-empty subset of the twelve pitch
+  classes. Each new prompt chooses uniformly from that pool, with repeats possible.
 - Enable / disable reminders. Disabling cancels the scheduled alarm and notification.
 - 1–6 reminders per active hour or active day, approximately.
 - Start / end times, selected weekdays, and an optional 1-hour, 8-hour, 1-day
@@ -236,10 +269,19 @@ The UI is Kotlin with platform Android views; the independent scheduler is Java.
 - Audio uses media volume and the current audio route. Playback requests audio
   focus and does not overlap on repeat taps. App-button playback stops when leaving
   the app; widget playback finishes on the home screen.
-- The bundled three-second WAV is an original 440 Hz sine with a gentle attack
-  and decaying envelope. Regenerate with `python3 tools/generate_tone.py`.
+- The bundled three-second WAV tones cover C4–B4 in twelve-tone equal temperament
+  (A4 = 440 Hz), using a gentle attack and decaying envelope. Regenerate with
+  `python3 tools/generate_tone.py`.
 
 ## Device acceptance checks
+
+- On a fresh install or upgrade with no pitch selection saved, verify A-only practice.
+- Choose a small pool (for example A, C and F♯ / G♭); verify every prompt belongs to it.
+- Select each pitch alone and compare the app, widget, shake and Quick Tap reference.
+- Check that notification text, app display and widget agree on the current pitch.
+- Reopen the app and rotate the screen: the prompt must not change or play by itself.
+- Reject an empty pool; change the pool during a response window and verify stale
+  actions do not play. Check **New practice prompt** with reminders off.
 
 - Enable reminder-only shake; use Test reminder, lock, and shake twice within 60 seconds.
 - Verify one playback, timeout silence, and no arming from service restart or boot.
@@ -253,7 +295,8 @@ The UI is Kotlin with platform Android views; the independent scheduler is Java.
 - Verify widget playback with reminders off and notification permission denied.
 - Add/resize/remove the widget and reboot: no automatic sound.
 - Check the widget on Android 8.0 and Android 15+; check large fonts.
-- Button plays A440; launch and notification taps are silent; repeated taps do not overlap.
+- Button plays the displayed pitch (A440 by default); launch and notification
+  taps are silent; repeated taps do not overlap.
 - Check media volume, headphones, calls/audio focus, and leaving the app mid-tone.
 - Grant, deny and revoke notification permission; verify the screen explains blocked reminders.
 - Test vibration; verify notification has no sound; check DND and channel vibration overrides.

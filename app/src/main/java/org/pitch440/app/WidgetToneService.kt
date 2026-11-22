@@ -41,7 +41,7 @@ class WidgetToneService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification = Notification.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_note)
-            .setContentTitle(getString(R.string.widget_playback_title))
+            .setContentTitle(getString(R.string.widget_playback_title, PitchNotes.displayLabel(PitchPractice.current(this))))
             .setContentText(getString(R.string.widget_playback_text))
             .setContentIntent(open)
             .setCategory(Notification.CATEGORY_TRANSPORT)
@@ -55,17 +55,27 @@ class WidgetToneService : Service() {
             } else {
                 startForeground(NOTIFICATION, notification)
             }
-            if (intent?.action == PLAY ||
-                (intent?.action == PLAY_REMINDER && ReminderResponse.consume(this))) {
+            // An old notification/widget tap must never answer a newer prompt.
+            // Quick Tap intentionally has no captured id and answers the current reminder.
+            val expected = intent?.getStringExtra(PitchPractice.PROMPT_EXTRA)
+            val matches = expected == null || expected == PitchPractice.promptId(this)
+            val pitch = when (intent?.action) {
+                PLAY -> if (expected != null && matches) PitchPractice.current(this) else null
+                PLAY_REMINDER -> if (matches) ReminderResponse.consumePitch(this) else null
+                else -> null
+            }
+            if (pitch != null) {
                 val current = ++generation
                 playbackActive = true
-                TonePlayback.play(this, this) {
+                TonePlayback.play(this, this, pitch) {
                     if (current == generation) {
                         playbackActive = false
                         stopSelf(latestStartId)
                     }
                 }
             } else {
+                if (intent?.action == PLAY) Toast.makeText(this,
+                    "The practice prompt changed. Tap the widget again.", Toast.LENGTH_SHORT).show()
                 if (intent?.action == PLAY_REMINDER) Toast.makeText(this,
                     R.string.response_closed, Toast.LENGTH_SHORT).show()
                 if (!playbackActive) stopSelf(startId)

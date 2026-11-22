@@ -2,6 +2,7 @@ package org.pitch440.app
 
 import android.app.*
 import android.content.*
+import android.net.Uri
 import java.time.ZoneId
 
 class Preferences(context: Context) {
@@ -23,7 +24,7 @@ object Reminders {
     private const val NOTIFICATION = 440
     fun channel(c: Context) {
         val ch = NotificationChannel(CHANNEL, "Pitch reminders", NotificationManager.IMPORTANCE_DEFAULT)
-        ch.description = "A gentle vibration to recall A440. No sound by default."
+        ch.description = "A gentle vibration to recall a selected pitch. No automatic sound."
         ch.setSound(null, null)
         ch.enableVibration(true)
         ch.vibrationPattern = longArrayOf(0, 180, 140, 180)
@@ -36,11 +37,14 @@ object Reminders {
     }
     private fun alarm(c: Context) = PendingIntent.getBroadcast(c, 440,
         Intent(c, ReminderReceiver::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-    fun cancel(c: Context) {
+    fun clearPrompt(c: Context) {
         ReminderResponse.clear(c)
         ShakeReminderService.cancelWindow()
-        c.getSystemService(AlarmManager::class.java).cancel(alarm(c))
         c.getSystemService(NotificationManager::class.java).cancel(NOTIFICATION)
+    }
+    fun cancel(c: Context) {
+        clearPrompt(c)
+        c.getSystemService(AlarmManager::class.java).cancel(alarm(c))
         Preferences(c).data.edit().remove("next").apply()
     }
     fun schedule(c: Context, reset: Boolean = false) {
@@ -61,28 +65,32 @@ object Reminders {
     }
     fun show(c: Context, armShake: Boolean = false) {
         if (!allowed(c)) return
+        val pitch = PitchPractice.chooseNext(c)
+        val name = PitchNotes.label(pitch)
         val open = PendingIntent.getActivity(c, 440, Intent(c, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val builder = Notification.Builder(c, CHANNEL)
-            .setSmallIcon(R.drawable.ic_note).setContentTitle("Can you recall A?")
+            .setSmallIcon(R.drawable.ic_note).setContentTitle("Can you recall $name?")
             .setContentText(if (armShake && ShakeReminderService.canArm(c))
-                "Recall A. Shake twice within 60 seconds to hear it, or tap to open."
+                "Recall $name. Shake twice within 60 seconds to hear it, or tap to open."
                 else "Imagine or sing it. Tap to open 440 when you’re ready.")
             .setContentIntent(open).setAutoCancel(true).setCategory(Notification.CATEGORY_REMINDER)
             .setVisibility(Notification.VISIBILITY_PRIVATE).setTimeoutAfter(3600000L)
         if (armShake && Preferences(c).quickTap) {
             val hear = PendingIntent.getForegroundService(c, 444,
-                Intent(c, WidgetToneService::class.java).setAction(WidgetToneService.PLAY_REMINDER),
+                Intent(c, WidgetToneService::class.java).setAction(WidgetToneService.PLAY_REMINDER)
+                    .setData(Uri.parse("pitch440://reminder/${PitchPractice.promptId(c)}"))
+                    .putExtra(PitchPractice.PROMPT_EXTRA, PitchPractice.promptId(c)),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            builder.addAction(Notification.Action.Builder(null, c.getString(R.string.response_hear), hear).build())
-            builder.setContentText("Recall A. Use Hear A or your shortcut within 60 seconds.")
+            builder.addAction(Notification.Action.Builder(null, c.getString(R.string.response_hear, name), hear).build())
+            builder.setContentText("Recall $name. Use Hear $name or your shortcut within 60 seconds.")
         }
         val notification = builder.build()
         try {
             c.getSystemService(NotificationManager::class.java).notify(NOTIFICATION, notification)
             if (armShake) {
-                ReminderResponse.arm(c)
+                ReminderResponse.arm(c, pitch)
                 ShakeReminderService.afterReminder(c)
             }
         }
@@ -105,6 +113,7 @@ class ReminderReceiver : BroadcastReceiver() {
 class RestoreReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         ReminderResponse.clear(context)
+        PitchWidget.updateAll(context)
         Reminders.schedule(context, true)
     }
 }

@@ -15,25 +15,30 @@ object ReminderResponse {
             Reminders.allowed(c) && c.getSystemService(NotificationManager::class.java)
                 .currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL
     }
-    @Synchronized fun arm(c: Context) {
+    @Synchronized fun arm(c: Context, pitch: Int) {
         clear(c)
-        if (eligible(c)) prefs(c).edit().putLong("armedAt", SystemClock.elapsedRealtime())
-            .putInt("boot", boot(c)).commit()
+        if (eligible(c) && PitchNotes.valid(pitch)) prefs(c).edit()
+            .putLong("armedAt", SystemClock.elapsedRealtime())
+            .putInt("boot", boot(c)).putInt("pitch", pitch).commit()
     }
     @Synchronized fun clear(c: Context): Boolean = prefs(c).edit().clear().commit()
 
     @Synchronized fun available(c: Context, requireQuickTap: Boolean = true): Boolean {
         if (requireQuickTap && !Preferences(c).quickTap) return false
         val p = prefs(c)
-        return ReminderResponseWindow(p.getLong("armedAt", -1), p.getInt("boot", -1))
+        val pitch = p.getInt("pitch", -1)
+        return PitchNotes.valid(pitch) && pitch == PitchPractice.current(c) &&
+            ReminderResponseWindow(p.getLong("armedAt", -1), p.getInt("boot", -1))
             .isOpen(SystemClock.elapsedRealtime(), boot(c), eligible(c))
     }
-    @Synchronized fun consume(c: Context, requireQuickTap: Boolean = true): Boolean {
-        if (requireQuickTap && !Preferences(c).quickTap) return false
+    /** Capture the exact requested note before clearing the one-shot response window. */
+    @Synchronized fun consumePitch(c: Context, requireQuickTap: Boolean = true): Int? {
+        if (requireQuickTap && !Preferences(c).quickTap) return null
         val p = prefs(c)
+        val pitch = p.getInt("pitch", -1)
         val accepted = ReminderResponseWindow(p.getLong("armedAt", -1), p.getInt("boot", -1))
             .consume(SystemClock.elapsedRealtime(), boot(c), eligible(c))
         val cleared = clear(c) // Fail closed if consumption cannot be persisted.
-        return accepted && cleared
+        return pitch.takeIf { accepted && cleared && PitchNotes.valid(it) && it == PitchPractice.current(c) }
     }
 }

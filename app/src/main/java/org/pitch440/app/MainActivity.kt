@@ -5,6 +5,7 @@ import android.app.*
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
@@ -20,11 +21,19 @@ class MainActivity : Activity() {
     private val ink = Color.rgb(30, 52, 43)
     private val green = Color.rgb(33, 105, 87)
     private lateinit var content: LinearLayout
+    private lateinit var heading: TextView
+    private lateinit var play: Button
+    private lateinit var pitchCaption: TextView
+    private lateinit var poolCaption: TextView
     private lateinit var status: TextView
     private lateinit var toggle: Switch
     private lateinit var shakeToggle: Switch
     private lateinit var quickTapToggle: Switch
     private var updating = false
+    private var displayedPitch = PitchNotes.A
+    private val pitchChanges = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == "practicePitch" || key == "practiceMask") refresh()
+    }
     private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,9 +49,9 @@ class MainActivity : Activity() {
             insets
         }
         label("A LITTLE PITCH PRACTICE", 12).apply { letterSpacing = 0.15f }
-        label("Find your A.", 34).setTypeface(null, Typeface.BOLD)
+        heading = label("Find your A.", 34).apply { setTypeface(null, Typeface.BOLD) }
         label("Recall it. Sing it. Then compare.", 17)
-        val play = Button(this).apply {
+        play = Button(this).apply {
             text = "440"; textSize = 76f; isAllCaps = false; setTextColor(Color.rgb(244, 243, 235))
             background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(green) }
             contentDescription = "Play A, 440 hertz"
@@ -51,8 +60,15 @@ class MainActivity : Activity() {
         content.addView(play, LinearLayout.LayoutParams(dp(240), dp(240)).apply {
             gravity = Gravity.CENTER_HORIZONTAL; topMargin = dp(24); bottomMargin = dp(12)
         })
-        label("Tap to hear A · 440 Hz", 15).gravity = Gravity.CENTER
+        pitchCaption = label("Tap to hear A4 · 440 Hz", 15).apply { gravity = Gravity.CENTER }
         label("Uses your media volume and current speaker or headphones.", 12).gravity = Gravity.CENTER
+        button("New practice prompt") {
+            PitchPractice.chooseNext(this)
+            refresh()
+        }
+        button("Practice pitches") { editPitches() }
+        poolCaption = label("", 15)
+        label("Start with A, then add pitches at your own pace. Each reminder or new prompt chooses equally from your selection; the same pitch can repeat. Recall or sing the named pitch before you play it.", 13)
         toggle = Switch(this).apply {
             text = "Random reminders"; textSize = 19f; setTextColor(ink); setPadding(0, dp(24), 0, dp(12))
             setOnCheckedChangeListener { _, checked ->
@@ -112,7 +128,10 @@ class MainActivity : Activity() {
         }
         button("Reminder settings") { editSettings() }
         button("Test reminder") {
-            if (Reminders.allowed(this)) Reminders.show(this, armShake = true)
+            if (Reminders.allowed(this)) {
+                Reminders.show(this, armShake = true)
+                refresh()
+            }
             else Toast.makeText(this, "Allow notifications first, using Notification settings.", Toast.LENGTH_LONG).show()
         }
         button("Notification settings") {
@@ -128,13 +147,29 @@ class MainActivity : Activity() {
     private fun button(value: String, action: () -> Unit) {
         content.addView(Button(this).apply { text = value; isAllCaps = false; setOnClickListener { action() } })
     }
+    override fun onStart() {
+        super.onStart()
+        Preferences(this).data.registerOnSharedPreferenceChangeListener(pitchChanges)
+    }
     override fun onResume() { super.onResume(); Reminders.schedule(this); ShakeReminderService.syncFromActivity(this); refresh() }
     private fun refresh() {
         val p = Preferences(this)
+        val mask = PitchPractice.selectedMask(this)
+        val pitch = PitchPractice.current(this)
+        if (displayedPitch != pitch) stopTone()
+        displayedPitch = pitch
+        val name = PitchNotes.displayLabel(pitch)
+        val frequency = if (pitch == PitchNotes.A) "440" else String.format(Locale.ROOT, "%.1f", PitchNotes.frequency(pitch))
+        heading.text = if (mask == (1 shl PitchNotes.A)) "Find your A." else "Find your pitch."
+        play.text = if (pitch == PitchNotes.A) "440" else PitchNotes.label(pitch).substringBefore(" / ")
+        play.contentDescription = "Play $name, $frequency hertz"
+        pitchCaption.text = "Tap to hear $name · $frequency Hz"
+        poolCaption.text = "Practice pitches: " + (0..11).filter { mask and (1 shl it) != 0 }
+            .joinToString(", ") { PitchNotes.label(it) }
         updating = true; toggle.isChecked = p.enabled; shakeToggle.isChecked = p.shake; quickTapToggle.isChecked = p.quickTap; updating = false
         val ch = getSystemService(NotificationManager::class.java).getNotificationChannel(Reminders.CHANNEL)
         status.text = when {
-            !p.enabled -> "Reminders are off. The 440 button is always ready."
+            !p.enabled -> "Reminders are off. You can still practise using the pitch button."
             !Reminders.allowed(this) -> "Reminders are enabled, but notifications are blocked. Open Notification settings."
             else -> "About ${p.count} per ${if (p.perDay) "active day" else "active hour"} · ${time(p.start)}–${time(p.end)}\n" +
                 (if (ch != null && !ch.shouldVibrate()) "Vibration is disabled in Notification settings.\n" else "") +
@@ -156,13 +191,47 @@ class MainActivity : Activity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 440) {
             if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) setEnabledReminders(true)
-            else Toast.makeText(this, "Reminders need notification permission. You can still play 440.", Toast.LENGTH_LONG).show()
+            else Toast.makeText(this, "Reminders need notification permission. You can still practise in the app.", Toast.LENGTH_LONG).show()
         }
     }
     private fun stopTone() = TonePlayback.stop(this)
-    private fun playTone() = TonePlayback.play(this, this)
-    override fun onStop() { stopTone(); super.onStop() }
+    private fun playTone() = TonePlayback.play(this, this, PitchPractice.current(this))
+    override fun onStop() {
+        Preferences(this).data.unregisterOnSharedPreferenceChangeListener(pitchChanges)
+        stopTone()
+        super.onStop()
+    }
     private fun time(minutes: Int) = String.format(Locale.ROOT, "%02d:%02d", minutes / 60, minutes % 60)
+    private fun editPitches() {
+        val mask = PitchPractice.selectedMask(this)
+        val selected = BooleanArray(12) { mask and (1 shl it) != 0 }
+        val dialog = AlertDialog.Builder(this).setTitle("Practice pitches · choose at least one")
+            .setMultiChoiceItems((0..11).map { PitchNotes.label(it) }.toTypedArray(), selected) { _, index, checked ->
+                selected[index] = checked
+            }
+            .setNegativeButton("Cancel", null)
+            .setNeutralButton("A only", null)
+            .setPositiveButton("Save", null).create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
+                for (index in selected.indices) {
+                    selected[index] = index == PitchNotes.A
+                    dialog.listView.setItemChecked(index, selected[index])
+                }
+            }
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val chosen = selected.indices.filter { selected[it] }.fold(0) { bits, index -> bits or (1 shl index) }
+                if (chosen == 0) {
+                    Toast.makeText(this, "Choose at least one pitch.", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                PitchPractice.setSelection(this, chosen)
+                refresh()
+                dialog.dismiss()
+            }
+        }
+        dialog.show()
+    }
     private fun editSettings() {
         val p = Preferences(this)
         val panel = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), dp(8)) }
